@@ -1,0 +1,800 @@
+////////////////////////////////////////////////////////////////////////////////////////////
+// Author: Farheen Naqvi, Steve Quinn                                                                  //
+//                                                                                        //
+// Description: This is the file where the SuN NaI detector along with DSSD detector for  //
+//              measuring beta-decay electrons are built. You can follow the              //
+//              syntax below to build and place your own detectors. There is also many    //
+//              useful examples online.                                                   //
+//                                                                                        //
+// Steps: 1. Define the elements that you need                                            //
+//        2. Use these elements to define the materials for the experimental setup        //
+//        3. Create an experimental room of air, vacuum, etc.                             //
+//        4. Create your experimental setup and place it in the experimental room         //
+//        5. Apply the color scheme you want for the optional visualization               //
+//                                                                                        //
+// Important: The way the code is currently set up, you are required to fill the array    //
+//   called detectorName[i] with the name of the detectors you want to save in your       //
+//   ROOT file.  In this example the names are "Det1" and "Det2" (see syntax below).      //
+////////////////////////////////////////////////////////////////////////////////////////////
+
+#include "DetectorConstruction.hh"
+#include "G4SDManager.hh"
+#include "G4Element.hh"
+#include "G4Material.hh"
+#include "G4Box.hh"
+#include "G4Tubs.hh"
+#include "G4Cons.hh"
+#include "G4Trd.hh"
+#include "G4LogicalVolume.hh"
+#include "G4ThreeVector.hh"
+#include "G4PVPlacement.hh"
+#include "G4SubtractionSolid.hh"
+#include "G4Polyhedra.hh"
+
+#include "G4UnitsTable.hh"
+#include "globals.hh"
+
+#include "G4VisAttributes.hh"
+#include "G4Colour.hh"
+#include <iostream>
+#include <sstream>
+#include "G4String.hh"
+#include "G4ios.hh"
+#include <stdio.h>
+
+DetectorConstruction::DetectorConstruction()
+  : NaI(0), Al(0), N78O21Ar1(0), Cr20Ni8Fe76(0), C2F4(0), Si(0), Cu3Zn2(0), SiO2(0), elCu(0), C2H3Cl(0), vacuum(0), cardboard(0), plastic(0)
+{
+}
+
+DetectorConstruction::~DetectorConstruction()
+{
+}
+
+G4VPhysicalVolume* DetectorConstruction::Construct()
+{
+  DefineMaterials();
+
+  return ConstructDetector();
+}
+
+
+void DetectorConstruction::DefineMaterials()
+{
+// define Parameters
+     G4String name, symbol;  
+     G4double a, z, density;           
+     G4int ncomponents, natoms;
+
+// define Elements
+
+     a = 22.99*g/mole;
+     G4Element* Na = new G4Element(name="Sodium" ,symbol="Na" , z= 11., a);
+
+     a = 126.90*g/mole;
+     G4Element* I = new G4Element(name="Iodine" ,symbol="I" , z= 53., a);
+
+     a = 204.38*g/mole;
+     G4Element* Tl = new G4Element(name="Thalium" ,symbol="Tl" , z= 81., a);
+
+     a = 26.982*g/mole;
+     G4Element* elAl  = new G4Element(name="element_Aluminum",symbol="elAl" , z= 13., a);
+
+     a = 14.00*g/mole;
+     G4Element* N  = new G4Element(name="Nitrogen",symbol="N" , z= 7., a);
+
+     a = 16.00*g/mole;
+     G4Element* O  = new G4Element(name="Oxygen",symbol="O" , z= 8., a);
+
+     a = 39.95*g/mole;
+     G4Element* Ar  = new G4Element(name="Argon",symbol="Ar" , z= 18., a);
+
+     a = 51.996*g/mole;
+     G4Element* Cr  = new G4Element(name="Chromium"  ,symbol="Cr" , z= 24., a);
+
+     a = 58.69*g/mole;
+     G4Element* Ni  = new G4Element(name="Nickel" ,symbol="Ni" , z= 28., a);
+
+     a = 55.847*g/mole;
+     G4Element* Fe  = new G4Element(name="Iron"  ,symbol="Fe" , z= 26., a);
+
+     a = 12.011*g/mole;
+     G4Element* C  = new G4Element(name="Carbon"  ,symbol="C" , z= 6., a);
+
+     a = 18.998*g/mole;
+     G4Element* F  = new G4Element(name="Fluorine"  ,symbol="F" , z= 9., a);
+
+     // **************************************************************************************************** Edited to include new elements
+
+     a = 28.085*g/mole; 
+     G4Element* elSi = new G4Element(name = "element_Silicon", symbol = "elSi", z = 14., a);
+     
+     a = 63.546*g/mole;
+     G4Element* Cu = new G4Element(name = "Copper", symbol = "Cu", z = 29., a);
+
+     a = 65.38*g/mole;
+     G4Element* Zn = new G4Element(name = "Zinc", symbol = "Zn", z = 30., a);
+
+     a = 1.008*g/mole;
+     G4Element* H = new G4Element(name = "Hydrogen", symbol = "H", z = 1., a);
+
+     a = 35.45*g/mole;
+     G4Element* Cl = new G4Element(name = "Chlorine", symbol = "Cl", z = 17., a);     
+
+
+// define Materials
+
+
+ //..........Stainless Steel..........
+
+     density = 8.0*g/cm3;
+     Cr20Ni8Fe76 = new G4Material(name="Stainless_Steel", density, ncomponents=3);
+     Cr20Ni8Fe76->AddElement(Cr, natoms=20);
+     Cr20Ni8Fe76->AddElement(Fe, natoms=76);
+     Cr20Ni8Fe76->AddElement(Ni, natoms=8);
+
+ //..........Polytetrafluorine (PTFE)............
+
+     density = 2.20*g/cm3;
+     C2F4 = new G4Material(name="PTFE", density, ncomponents=2);
+     C2F4->AddElement(C, natoms=2);
+     C2F4->AddElement(F, natoms=4); 
+
+ //..........NaI......................
+	
+     density = 3.67*g/cm3;
+     NaI = new G4Material(name="Sodium Iodine", density, ncomponents=3);
+     NaI->AddElement(Na, natoms=1000);
+     NaI->AddElement(I, natoms=1000);
+     NaI->AddElement(Tl, natoms=1);
+
+ //..........Al.......................	
+	
+     density = 2.698*g/cm3;
+     Al = new G4Material(name="Aluminum", density, ncomponents=1);
+     Al->AddElement(elAl, natoms=1);
+		
+ //..........Air.....................
+
+     density = 1.2927*mg/cm3;
+     N78O21Ar1 = new G4Material(name="Air", density, ncomponents=3);
+     N78O21Ar1->AddElement(N, natoms=78);
+     N78O21Ar1->AddElement(O, natoms=21);
+     N78O21Ar1->AddElement(Ar, natoms=1);
+
+ // ******************************************************************************************************** Edited to include new materials
+
+ //..........Silicon.................. 
+
+     density = 2.3290*g/cm3;
+     Si = new G4Material(name = "Silicon", density, ncomponents = 1);
+     Si->AddElement(elSi, natoms=1);
+
+ //..........Brass....................
+
+     density = 8.5*g/cm3;
+     Cu3Zn2 = new G4Material(name = "Brass", density, ncomponents = 2);
+     Cu3Zn2->AddElement(Cu, natoms=3);
+     Cu3Zn2->AddElement(Zn, natoms=2); 
+
+ //..........Copper...................
+
+     density = 8.96*g/cm3;
+     elCu = new G4Material(name = "Copper", density, ncomponents = 1);
+     elCu->AddElement(Cu, natoms=1);
+
+ //..........Polyvinyl Chloride (PVC)....... 
+
+     density = 1.2*g/cm3;
+     C2H3Cl = new G4Material(name = "PVC", density, ncomponents = 3);
+     C2H3Cl->AddElement(C, natoms=2);
+     C2H3Cl->AddElement(H, natoms=3);
+     C2H3Cl->AddElement(Cl, natoms=1);
+
+
+//..........Nylon for plastic holder of veto detector...... 
+
+     density = 1.14*g/cm3;
+     plastic = new G4Material(name = "Plastic", density, ncomponents = 4);
+     plastic->AddElement(C, natoms=12);
+     plastic->AddElement(H, natoms=22);
+     plastic->AddElement(N, natoms=2);
+     plastic->AddElement(O, natoms=2);
+  
+
+//..........Glass for PCB boards
+ 
+       density = 1.85*g/cm3;
+       SiO2 = new G4Material(name = "Glass", density, ncomponents = 2);
+       SiO2->AddElement(O, natoms=2 );
+       SiO2->AddElement(elSi, natoms=1 );
+
+//..........Vacuum for ROOM
+ 
+       density = 1.e-25*g/cm3;
+       vacuum = new G4Material(name = "Vacuum", density, ncomponents = 1, kStateGas, 2.73*kelvin, 1.e-25*g/cm3 );
+       vacuum->AddElement(H, natoms=1 );
+     
+
+
+//..........CardBoard for source holder
+ 
+       density = 1.5*g/cm3;
+       cardboard = new G4Material(name = "cardboard", density, ncomponents = 3);
+       cardboard->AddElement(C, natoms=6 );
+       cardboard->AddElement(H, natoms=10 );
+       cardboard->AddElement(O, natoms=5 );
+     
+
+
+
+// Print out Elements and Materials
+  G4cout << "\n\n ####-------------------------------------------------------#### \n";
+  G4cout << "\n\n\n\n\t\t #### List of elements used #### \n";
+  G4cout << *(G4Element::GetElementTable());
+  G4cout << "\n\n\n\n\t\t #### List of materials used #### \n";
+  G4cout << *(G4Material::GetMaterialTable());
+  G4cout << "\n\n ####-------------------------------------------------------#### \n";
+
+}
+
+G4VPhysicalVolume* DetectorConstruction::ConstructDetector()
+{
+
+
+//..........EXPERIMENTAL ROOM............
+  G4Tubs* room_tube = new G4Tubs("room", 0.0*cm, 100.0*cm, 300.0*cm, 0.0*deg, 360.0*deg);
+  G4LogicalVolume* room_log = new G4LogicalVolume(room_tube,vacuum,"room",0,0,0);
+  G4VPhysicalVolume* room_phys = new G4PVPlacement(0,G4ThreeVector(0.0*cm,0.0*cm,0.0*cm),"room",room_log,NULL,false,0);
+
+
+//..........BEAM PIPE................
+  G4double outerR_beam = 20.6375*mm;                   //edit this to change the radius of the beam pipe
+  G4double innerR_beam = outerR_beam-0.889*mm;      //edit this to change the thickness of the beam pipe
+  G4double halflength_beam = 341.0*mm;              //edit this to change the length of the beam pipe
+  G4double startAngle_beam = 0.*deg;
+  G4double spanAngle_beam = 360.*deg;
+
+  G4Tubs* beam_tube = new G4Tubs("beam_tube",innerR_beam, outerR_beam, halflength_beam, startAngle_beam, spanAngle_beam);
+
+  G4LogicalVolume* beam_log = new G4LogicalVolume(beam_tube,Al,"beam_log",0,0,0);
+
+  G4VPhysicalVolume* beam_phys = new G4PVPlacement(0,G4ThreeVector(0.0*mm,0.0*mm,100.0*mm),beam_log,"beam_phys",room_log,false,0);
+
+
+//.........DIMENSIONS OF SuN..........           **(changing these will scale the whole simulation)**
+  G4double innerR_scint = 22.5*mm;               // 45mm borehole
+  G4double outerR_scint = 203.0*mm;              // total of 406mm in diameter
+  G4double length_scint = 101.5*mm;              // total of 406mm in length
+  G4double width_Refl = 0.25*mm;                 // width of reflector 
+  G4double width_Al_vert = 0.50*mm;              // width of alumiunum between each segment
+  G4double width_Al_horiz = 0.75*mm;             // width of aluminum between top and bottom half
+  G4double innerR_Al = 21.5*mm;                  // 43mm in center           
+  G4double outerR_Al = 222.5*mm;                 // thick outer casing     
+
+
+//..........NaI SCINTILLATOR..........
+  G4double halflength_scint = 0.5*length_scint;
+  G4double startAngle_scint = 0.0*deg;
+  G4double spanAngle_scint = 180.0*deg;
+
+  G4Tubs* scint_tube = new G4Tubs("scint_tube",innerR_scint,outerR_scint,halflength_scint,startAngle_scint,spanAngle_scint);
+ 
+  G4LogicalVolume* scint_log = new G4LogicalVolume(scint_tube,NaI,"scint_log",0,0,0);
+
+//..........REFLECTOR.................
+  G4double innerR_Refl = innerR_scint - width_Refl;
+  G4double outerR_Refl = outerR_scint + 2.0*width_Refl;
+  G4double length_Refl = length_scint + 2.0*width_Refl;
+  G4double halflength_Refl = 0.5*length_Refl;
+
+  G4Tubs* refl_tube = new G4Tubs("refl_tube",innerR_Refl,outerR_Refl,halflength_Refl,startAngle_scint,spanAngle_scint);
+
+  G4SubtractionSolid* refl_sub = new G4SubtractionSolid("refl_sub",refl_tube,scint_tube,0,G4ThreeVector(0.0*mm,width_Refl,0.0*mm));
+
+  G4LogicalVolume*  refl_log = new G4LogicalVolume(refl_sub,C2F4,"refl_log",0,0,0);
+
+//..........ALUMINUM.............          
+  G4double length_Al = length_Refl + width_Al_vert;   
+  G4double halflength_Al = 0.5*length_Al;
+
+  G4Tubs* al_tube = new G4Tubs("al_tube",innerR_Al,outerR_Al,halflength_Al,startAngle_scint,spanAngle_scint);
+
+  G4SubtractionSolid* al_sub = new G4SubtractionSolid("al_sub",al_tube,refl_tube,0,G4ThreeVector(0.0*mm,width_Al_horiz,0.0*mm));
+ 
+  G4LogicalVolume*  al_log = new G4LogicalVolume(al_sub,Al,"al_log",0,0,0);
+
+
+  G4double length_Al_side = 13.0*mm;   
+  G4double halflength_Al_side = 0.5*length_Al_side;
+
+  G4Tubs* al_tube_side = new G4Tubs("al_tube_side",innerR_Al,outerR_Al,halflength_Al_side,0.0*deg,360.0*deg);
+
+  G4LogicalVolume*  al_log_side = new G4LogicalVolume(al_tube_side,Al,"al_log_side",0,0,0);
+
+
+// ====================== Placing the volumes ==============================//
+
+ // Rotation Matrix
+    G4RotationMatrix* rot_180 = new G4RotationMatrix();
+      rot_180->rotateZ(180*deg);
+
+  G4double Pos_x = 0.0*mm;
+  G4double Pos_y_Al = 0.0*mm;
+  G4double Pos_y_Refl = width_Al_horiz;
+  G4double Pos_y_Scint = Pos_y_Refl + width_Refl;
+  G4double Pos_z = -1.5*width_Al_vert - 3.0*width_Refl - 3.0*halflength_scint;
+  
+  G4String topName;
+  G4String botName;
+
+for (int i=1; i<=4; i++)
+ {
+
+     if(i==1)
+      {
+        topName = "T1";
+        botName = "B1";
+      }
+     if(i==2)
+      {
+        topName = "T2";
+        botName = "B2";
+      }
+     if(i==3)
+      {
+        topName = "T3";
+        botName = "B3";
+      }
+     if(i==4)
+      {
+        topName = "T4";
+        botName = "B4";
+      }
+
+  // TOP OF SUN
+
+     Pos_y_Al = 0.0*mm;
+     Pos_y_Refl = width_Al_horiz;
+     Pos_y_Scint = Pos_y_Refl + width_Refl;
+
+     //aluminum
+     G4VPhysicalVolume* al_top = new G4PVPlacement(0,G4ThreeVector(Pos_x,Pos_y_Al,Pos_z),al_log,"al_top",room_log,false,0);
+
+     //reflector  
+     G4VPhysicalVolume* refl_top = new G4PVPlacement(0,G4ThreeVector(Pos_x,Pos_y_Refl,Pos_z),refl_log,"refl_top",room_log,false,0);
+
+     //scintillator
+     G4VPhysicalVolume* scint_top = new G4PVPlacement(0,G4ThreeVector(Pos_x,Pos_y_Scint,Pos_z),scint_log,topName,room_log,false,0);
+
+
+  // BOTTOM OF SUN
+
+     Pos_y_Al = 0.0*mm;
+     Pos_y_Refl = -width_Al_horiz;
+     Pos_y_Scint = Pos_y_Refl - width_Refl;
+
+     //aluminum
+     G4VPhysicalVolume* al_bottom = new G4PVPlacement(rot_180,G4ThreeVector(Pos_x,Pos_y_Al,Pos_z),al_log,"al_bottom",room_log,false,0);
+
+     //reflector  
+     G4VPhysicalVolume* refl_bottom = new G4PVPlacement(rot_180,G4ThreeVector(Pos_x,Pos_y_Refl,Pos_z),refl_log,"refl_bottom",room_log,false,0);
+
+     //scintillator
+     G4VPhysicalVolume* scint_bottom = new G4PVPlacement(rot_180,G4ThreeVector(Pos_x,Pos_y_Scint,Pos_z),scint_log,botName,room_log,false,0);
+
+
+     Pos_z = Pos_z + width_Al_vert + 2.0*width_Refl + length_scint;
+   }
+
+
+// SIDES OF SUN
+
+  Pos_x = 0.0*mm;
+  Pos_y_Al = 0.0*mm;
+  Pos_z = 2.0*length_scint + 2.0*width_Al_vert + 4.0*width_Refl + halflength_Al_side; 
+  G4VPhysicalVolume* al_sideA = new G4PVPlacement(0,G4ThreeVector(Pos_x,Pos_y_Al,Pos_z),al_log_side,"al_sideA",room_log,false,0);
+  G4VPhysicalVolume* al_sideB = new G4PVPlacement(0,G4ThreeVector(Pos_x,Pos_y_Al,-Pos_z),al_log_side,"al_sideB",room_log,false,0);
+
+ 
+// **************************************************************************************************
+//  FOR THE CODE TO PROPERLY SAVE THINGS TO ROOT, YOU NEED TO TELL IT WHAT YOU NAMED YOUR DETECTORS
+// **************************************************************************************************
+//              The name of the detectors is in the G4VPhysicalVolume command                      
+	  detectorName[0] = "T1";
+	  detectorName[1] = "T2";
+	  detectorName[2] = "T3";
+	  detectorName[3] = "T4";
+	  detectorName[4] = "B1";
+	  detectorName[5] = "B2";
+	  detectorName[6] = "B3";
+	  detectorName[7] = "B4";
+
+// **************************************************************************************************
+
+
+//____________THE SILICON VETO DETECTOR_____________________________
+
+
+//..........SILICON CYLINDER.......... 
+
+  
+  // si = The silicon cylinder that is inside the brass cyliner
+
+  G4double innerR_si = 0.0*mm; 
+  G4double outerR_si = 9.75*mm;    // From manufacturer specifications in lab notebook: Detector Size = 300 mm^2, and diameter = W = 19.5 mm 
+  G4double length_si = 0.5*mm;        // From manufacturer specifications in lab notebook: Depletion Depth = 500 micrometers = 0.5 mm but total thickness = 12.3 mm
+  G4double halflength_si = 0.5*length_si;
+  G4double startAngle_si = 0.0*deg;
+  G4double spanAngle_si = 360.0*deg;  
+
+  G4Tubs* si_tube = new G4Tubs("si_tube", innerR_si, outerR_si, halflength_si, startAngle_si, spanAngle_si); 
+
+  G4LogicalVolume* si_log = new G4LogicalVolume(si_tube, Si, "si_log", 0, 0, 0); 
+
+
+//..........BRASS CYLINDER.......... 
+
+
+  // brassWhole = The entire solid brass cylinder (withtout the indent at the front or space inside for the silicon cylinder)
+
+  G4double innerR_brassWhole = 0.0*mm;  
+  G4double outerR_brassWhole = 14.3*mm;           // From manufacturer's specifications in lab notebook: diameter = X = 28.6 mm
+  G4double length_brassWhole = 12.3*mm;           // From manufacturer's specifications in lab notebook: Y = 12.3 mm 
+  G4double halflength_brassWhole = 0.5*length_brassWhole;
+  G4double startAngle_brassWhole = 0.0*deg;
+  G4double spanAngle_brassWhole = 360.0*deg;
+
+  G4Tubs* brassWhole_tube = new G4Tubs("brassWhole_tube", innerR_brassWhole, outerR_brassWhole, halflength_brassWhole, startAngle_brassWhole, spanAngle_brassWhole);
+
+  G4LogicalVolume* brassWhole_log = new G4LogicalVolume(brassWhole_tube, Cu3Zn2, "brassWhole_log", 0, 0, 0);
+
+  // brassIndent = The indent at the front of the brass cylinder 
+
+  G4double innerR_brassIndent = 0.0*mm;
+  G4double outerR_brassIndent = 9.75*mm;          // The indent has an outer radius equal to the outer radius of the silicon cylinder
+  G4double length_brassIndent = 2.0*mm;          // Measured by eye 
+  G4double halflength_brassIndent = 0.5*length_brassIndent;
+  G4double startAngle_brassIndent = 0.0*deg;
+  G4double spanAngle_brassIndent = 360.0*deg;
+
+  G4Tubs* brassIndent_tube = new G4Tubs("brassIndent_tube", innerR_brassIndent, outerR_brassIndent, halflength_brassIndent, startAngle_brassIndent, spanAngle_brassIndent);  
+
+  G4LogicalVolume* brassIndent_log = new G4LogicalVolume(brassIndent_tube, Cu3Zn2, "brassIndent_log", 0, 0, 0);    
+
+  // brassCutout = Used solely to see succesful visual subtraction in the creation of "brass" below. This variable should never be used again
+
+  G4double innerR_brassCutout = 0.0*mm;
+  G4double outerR_brassCutout = 9.75*mm;
+  G4double length_brassCutout = 4.0*mm;
+  G4double halflength_brassCutout = 0.5*length_brassCutout;
+  G4double startAngle_brassCutout = 0.0*deg;
+  G4double spanAngle_brassCutout = 360*deg;
+
+  G4Tubs* brassCutout_tube = new G4Tubs("brassCutout_tube", innerR_brassCutout, outerR_brassCutout, halflength_brassCutout, startAngle_brassCutout, spanAngle_brassCutout); 
+
+  // brass = The brass cylinder with the indent and space for the silicon cylinder
+
+  // Create the indent
+  G4SubtractionSolid* brass_sub1 = new G4SubtractionSolid("brass_sub1", brassWhole_tube, brassCutout_tube, 0, G4ThreeVector(0.0*mm, 0.0*mm, (-1.0)*(halflength_brassWhole)));
+
+  // Create space for the silicon cylinder. I assumed there is 1.0*mm of brass material between the edge of the silicon cylinder and the edge of the indent
+  G4SubtractionSolid* brass_sub2 = new G4SubtractionSolid("brass_sub2", brass_sub1, si_tube, 0, G4ThreeVector(0.0*mm, 0.0*mm, (-1.0)*(halflength_brassWhole)+(length_brassIndent)+(halflength_si)));
+
+  G4LogicalVolume* brass_log = new G4LogicalVolume(brass_sub2, Cu3Zn2, "brass_log", 0, 0, 0);
+
+
+
+
+  
+//..........PLASTIC HOLDER FOR SILICON VETO DETECTOR.......... 
+
+
+  // plasticWhole = The entire solid plastic cylinder (withtout the  space inside for the silicon cylinder)
+
+  G4double innerR_plasticWhole = 14.5*mm;  
+  G4double outerR_plasticWhole = 19.5*mm;                                       
+  G4double length_plasticWhole = 16.0*mm;                                             
+  G4double halflength_plasticWhole = 0.5*length_plasticWhole;
+  G4double startAngle_plasticWhole = 40.0*deg;
+  G4double spanAngle_plasticWhole = 220.0*deg;
+
+  G4Tubs* plasticWhole_tube = new G4Tubs("plasticWhole_tube", innerR_plasticWhole, outerR_plasticWhole, halflength_plasticWhole, startAngle_plasticWhole, spanAngle_plasticWhole);
+
+  G4LogicalVolume* plastic_log = new G4LogicalVolume(plasticWhole_tube, plastic, "plastic_log", 0, 0, 0);
+
+ 
+  
+
+//..........PCB BOARD FRAME AND SILICON DSSD IN FRONT OF VETO DETECTOR..........
+
+ 
+  // pcbFrameWhole = The entire PCB board (without space for the aluminum target) 
+
+  
+
+  G4double innerR_pcbFrameWhole = 0.0*mm;
+  G4double outerR_pcbFrameWhole = 17.75*mm;          
+  G4double length_pcbFrameWhole = 3*mm;             
+  G4double halflength_pcbFrameWhole = 0.5*length_pcbFrameWhole;
+  G4double startAngle_pcbFrameWhole = 40.0*deg;
+  G4double spanAngle_pcbFrameWhole = 190.0*deg;
+
+  G4Tubs* pcbFrameWhole_tube = new G4Tubs("pcbFrameWhole_tube", innerR_pcbFrameWhole, outerR_pcbFrameWhole, halflength_pcbFrameWhole, startAngle_pcbFrameWhole, spanAngle_pcbFrameWhole);
+
+  G4LogicalVolume* pcbFrameWhole_log = new G4LogicalVolume(pcbFrameWhole_tube, SiO2, "pcbFrameWhole_log", 0, 0, 0);
+
+ 
+  
+  
+  // pcbFrameCutout = The rectangle that is cut out of the pcb board frame (to make space for the Si DSSD)
+
+  // width is the length that lies in plane that divides SuN in half, height is the length that is perpendicular to the plane that divides SuN in half, thick is the length parallel to the beam axis
+
+
+
+
+  G4double width_pcbFrameCutOut = 21.8*mm;                                   // Measured using measuring tape
+  G4double halfwidth_pcbFrameCutOut = 0.5*width_pcbFrameCutOut;
+  G4double height_pcbFrameCutOut = 21.8*mm;                                  // Measured using measuring tape
+  G4double halfheight_pcbFrameCutOut = 0.5*height_pcbFrameCutOut;
+  G4double thick_pcbFrameCutOut = 4.0*mm;                                  
+  G4double halfthick_pcbFrameCutOut = 0.5*thick_pcbFrameCutOut;
+
+  
+  G4Box* pcbFrameCutout_box = new G4Box("pcbFrameCutout_box", halfwidth_pcbFrameCutOut, halfheight_pcbFrameCutOut, halfthick_pcbFrameCutOut );
+
+  G4LogicalVolume* pcbFrameCutout_log = new G4LogicalVolume(pcbFrameCutout_box, SiO2 , "pcbFrameCutout_log", 0, 0, 0);
+  
+  // pcbFrame = The PCB board frame with the rectangle cut out. 
+
+  G4SubtractionSolid* pcbFrame_sub = new G4SubtractionSolid("pcbFrame_sub", pcbFrameWhole_tube, pcbFrameCutout_box, 0, G4ThreeVector(0.0*mm, 0.0*mm, 0.0*mm)); 
+
+  G4LogicalVolume* pcbFrame_log = new G4LogicalVolume(pcbFrame_sub, SiO2, "pcbFrame_log", 0, 0, 0);   
+
+
+ // PCB edges
+
+   G4double width_pcbEdge1 = 21.8*mm;                                  
+  G4double halfwidth_pcbEdge1 = 0.5*width_pcbEdge1;
+  G4double height_pcbEdge1 = 3*mm;                                 
+  G4double halfheight_pcbEdge1 = 0.5*height_pcbEdge1;
+  G4double thick_pcbEdge1 = 3*mm;                                  
+  G4double halfthick_pcbEdge1 = 0.5*thick_pcbEdge1;
+
+  
+  G4Box* pcbEdge1_box = new G4Box("pcbEdge1_box", halfwidth_pcbEdge1, halfheight_pcbEdge1, halfthick_pcbEdge1 );
+  G4LogicalVolume* pcbEdge1_log = new G4LogicalVolume(pcbEdge1_box, SiO2, "pcbEdge1_log", 0, 0, 0);   
+
+
+
+   G4double width_pcbEdge2 = 3*mm;                                   
+  G4double halfwidth_pcbEdge2 = 0.5*width_pcbEdge2;
+  G4double height_pcbEdge2 = 24.8*mm;                                 
+  G4double halfheight_pcbEdge2 = 0.5*height_pcbEdge2;
+  G4double thick_pcbEdge2 = 3*mm;                                  
+  G4double halfthick_pcbEdge2 = 0.5*thick_pcbEdge2;
+
+  
+  G4Box* pcbEdge2_box = new G4Box("pcbEdge2_box", halfwidth_pcbEdge2, halfheight_pcbEdge2, halfthick_pcbEdge2 );
+
+  
+  
+  
+
+  
+
+  G4LogicalVolume* pcbEdge2_log = new G4LogicalVolume(pcbEdge2_box, SiO2, "pcbEdge2_log", 0, 0, 0);   
+
+
+
+
+  
+  // SILICON DSSD = The Silicon wafer held by the PCB board frame 
+
+
+  G4double width_waferwhole = 21.8*mm;                                   
+  G4double halfwidth_waferwhole = 0.5*width_waferwhole;
+  G4double height_waferwhole = 21.8*mm;                                  
+  G4double halfheight_waferwhole = 0.5*height_waferwhole;
+  G4double thick_waferwhole = 1.03*mm;                                
+  G4double halfthick_waferwhole = 0.5*thick_waferwhole;            
+
+
+   
+  G4Box* waferwhole_box = new G4Box("waferwhole_box", halfwidth_waferwhole, halfheight_waferwhole, halfthick_waferwhole);
+
+  G4LogicalVolume* waferwhole_log = new G4LogicalVolume(waferwhole_box, Si, "waferwhole_log", 0, 0, 0);
+
+  // Cutout in Si wafer to make space for DSSD (Active area) 
+
+
+  G4double width_wafercutout = 20.0*mm;                                   
+  G4double halfwidth_wafercutout = 0.5*width_wafercutout;
+  G4double height_wafercutout = 20.0*mm;                                  
+  G4double halfheight_wafercutout = 0.5*height_wafercutout;
+  G4double thick_wafercutout = 1.53*mm;                              
+  G4double halfthick_wafercutout = 0.5*thick_wafercutout;           
+
+
+
+  G4Box* wafercutout_box = new G4Box("wafercutout_box", halfwidth_wafercutout, halfheight_wafercutout, halfthick_wafercutout );
+
+
+   G4SubtractionSolid* wafer_sub = new G4SubtractionSolid("wafer_sub", waferwhole_box, wafercutout_box, 0, G4ThreeVector(0.0*mm, 0.0*mm, 0.0*mm)); 
+   
+  
+
+  G4LogicalVolume* wafer_log = new G4LogicalVolume(wafer_sub, Si, "wafer_log", 0, 0, 0);
+
+
+
+  // SILICON DSSD = The active area of DSSD held by the PCB board frame 
+
+
+  G4double width_dssd = 20.0*mm;                                   
+  G4double halfwidth_dssd = 0.5*width_dssd;
+  G4double height_dssd = 20.0*mm;                                  
+  G4double halfheight_dssd = 0.5*height_dssd;
+  G4double thick_dssd = 1.03*mm;                               
+  G4double halfthick_dssd = 0.5*thick_dssd;           
+
+
+   
+  G4Box* dssd_box = new G4Box("dssd_box", halfwidth_dssd, halfheight_dssd, halfthick_dssd );
+
+  G4LogicalVolume* dssd_log = new G4LogicalVolume(dssd_box, Si, "dssd_log", 0, 0, 0);
+
+
+
+
+
+
+// CARDBOARD = cardboard in front of our alpha and beta sources to hold them...a samll part of the source was covered by cardboard and betas can make through so I am putting it in
+
+
+   G4double innerR_cardboard = 0.5*mm;  
+  G4double outerR_cardboard = 12.0*mm;                                       
+  G4double length_cardboard = 0.25*mm;                                             
+  G4double halflength_cardboard = 0.5*length_cardboard;
+  G4double startAngle_cardboard = 0.0*deg;
+  G4double spanAngle_cardboard = 360.0*deg;
+
+  G4Tubs* cardboard_tube = new G4Tubs("cardboard_tube", innerR_cardboard, outerR_cardboard, halflength_cardboard, startAngle_cardboard, spanAngle_cardboard);
+
+   G4LogicalVolume* cardboard_log = new G4LogicalVolume(cardboard_tube, cardboard, "cardboard_log", 0, 0, 0);
+
+       														 
+// =========== Placing the volumes =========== //
+
+
+  
+    G4double z_disp = 4.0*mm;
+
+  G4VPhysicalVolume* pcbFrame_phys = new G4PVPlacement(0, G4ThreeVector(0.0*mm, 0.0*mm, z_disp), pcbFrame_log, "pcbFrame_phys", room_log, false, 0);
+
+  G4VPhysicalVolume* pcbEdge1_phys = new G4PVPlacement(0, G4ThreeVector(0.0*mm, -halfheight_waferwhole-halfheight_pcbEdge1, z_disp), pcbEdge1_log, "pcbEdge1_phys", room_log, false, 0);
+  
+  G4VPhysicalVolume* pcbEdge2_phys = new G4PVPlacement(0, G4ThreeVector(halfwidth_waferwhole+halfwidth_pcbEdge2, -1.5*mm, z_disp), pcbEdge2_log, "pcbEdge2_phys", room_log, false, 0);
+
+  G4VPhysicalVolume* wafer_phys = new G4PVPlacement(0, G4ThreeVector(0.0*mm, 0.0*mm, z_disp), wafer_log, "wafer_phys", room_log, false, 0);
+
+ 
+  G4VPhysicalVolume* dssd_phys = new G4PVPlacement(0, G4ThreeVector(0.0*mm, 0.0*mm, z_disp), dssd_log, "dssd_phys", room_log, false, 0);
+
+//  G4VPhysicalVolume* cardboard_phys = new G4PVPlacement(0, G4ThreeVector(0.0*mm, 0.0*mm, 0.1*mm), cardboard_log, "cardboard_phys", room_log, false, 0);
+ 
+
+  detectorName[8] = "dssd_phys";
+
+
+  G4VPhysicalVolume* plastic_phys = new G4PVPlacement(0, G4ThreeVector(0.0*mm, 0.0*mm, z_disp+19.2*mm), plastic_log, "plastic_phys", room_log, false, 0); 
+
+  
+  G4VPhysicalVolume* brass_phys = new G4PVPlacement(0, G4ThreeVector(0.0*mm, 0.0*mm, z_disp+19.2*mm-halflength_plasticWhole+halflength_brassWhole), brass_log, "brass_phys", room_log, false, 0);
+
+
+       
+
+
+  G4VPhysicalVolume* si_phys = new G4PVPlacement(0, G4ThreeVector(0.0*mm, 0.0*mm,z_disp+19.2*mm-halflength_plasticWhole+length_brassIndent+halflength_si), si_log, "si_phys", room_log, false, 0);
+
+
+ 
+
+
+  
+//========================== Visualization attributes =========================================//
+
+  room_log->SetVisAttributes (G4VisAttributes::Invisible);
+
+//visualization for scintillators = GREEN
+  G4VisAttributes *GreenAttr = new G4VisAttributes(G4Colour(0.,1.,0.));     
+  GreenAttr->SetVisibility(true);
+  GreenAttr->SetForceSolid(true);
+
+//visualization for reflector = PURPLE
+  G4VisAttributes *PurpleAttr = new G4VisAttributes(G4Colour(1.,0.,1.));  
+  PurpleAttr->SetVisibility(true);
+  PurpleAttr->SetForceSolid(true);
+
+//visualization for aluminum = GREY
+  G4VisAttributes *GreyAttr = new G4VisAttributes(G4Colour(0.5,0.5,0.5));
+  GreyAttr->SetVisibility(true);
+  GreyAttr->SetForceSolid(true);
+
+//visualization for BLUE
+  G4VisAttributes *BlueAttr = new G4VisAttributes(G4Colour(0.,0.,1.));
+  BlueAttr->SetVisibility(true);
+  BlueAttr->SetForceSolid(true);
+
+// *********************************************************************************************** Edited to include colors for the silicon detector
+
+//visualization for brass = YELLOW
+  G4VisAttributes *YellowAttr = new G4VisAttributes(G4Colour(1.0, 1.0, 0.0));
+  YellowAttr->SetVisibility(true);
+  YellowAttr->SetForceSolid(true);
+
+//visualization for palstic = DIFFERENT GREY
+  G4VisAttributes *difGreyAttr = new G4VisAttributes(G4Colour(0.5, 0.6, 0.6));
+  difGreyAttr->SetVisibility(true);
+  difGreyAttr->SetForceSolid(true);
+
+//visualization for silicon veto and DSSD CYAN
+  G4VisAttributes *CyanAttr = new G4VisAttributes(G4Colour(0.0 ,1.0 ,1.0));
+  CyanAttr->SetVisibility(true);
+  CyanAttr->SetForceSolid(true);
+
+// visualization for PCB board = RED
+  G4VisAttributes *RedAttr = new G4VisAttributes(G4Colour(1.0, 0.0, 0.0));
+  RedAttr->SetVisibility(true);
+  RedAttr->SetForceSolid(true);
+
+// applying the color scheme
+
+  //scint_log->SetVisAttributes(GreenAttr);
+  //refl_log->SetVisAttributes(PurpleAttr);
+  //al_log->SetVisAttributes(GreyAttr);
+  //al_log_side->SetVisAttributes(GreyAttr);
+  //beam_log->SetVisAttributes(BlueAttr);
+
+  //holder_log->SetVisAttributes(GreyAttr);
+  //pipe_log->SetVisAttributes(GreyAttr);
+  //end_log->SetVisAttributes(GreyAttr);
+  //endcap_log->SetVisAttributes(GreyAttr);
+
+  // ******************************************************************************************** Edited to include visualization for the silicon detector
+  
+  si_log->SetVisAttributes(CyanAttr);
+  brass_log->SetVisAttributes(YellowAttr);
+
+
+   plastic_log->SetVisAttributes(difGreyAttr);
+   dssd_log->SetVisAttributes(CyanAttr);
+
+   pcbFrame_log->SetVisAttributes(RedAttr);
+    pcbEdge1_log->SetVisAttributes(RedAttr);
+     pcbEdge2_log->SetVisAttributes(RedAttr);
+
+  wafer_log->SetVisAttributes(YellowAttr);
+  
+   cardboard_log->SetVisAttributes(RedAttr);
+  //hex_log->SetVisAttributes(difGreyAttr);
+  //detConnector_log->SetVisAttributes(difGreyAttr);
+
+  //alumFrame_log->SetVisAttributes(GreyAttr);
+  //alumTarget_log->SetVisAttributes(CyanAttr);
+  
+ // cabConnectorA_log->SetVisAttributes(YellowAttr);
+ // cabConnectorB_log->SetVisAttributes(YellowAttr);
+ // cabConnectorC_log->SetVisAttributes(YellowAttr);
+
+ // copWire_log->SetVisAttributes(YellowAttr);
+ // pvcCoat_log->SetVisAttributes(RedAttr);
+  
+  // These are only used to check visualization
+  //brassIndent_log->SetVisAttributes(YellowAttr);
+  //cabConnectorACutout_log->SetVisAttributes(YellowAttr);
+
+  return room_phys;
+}

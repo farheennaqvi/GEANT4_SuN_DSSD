@@ -1,0 +1,46 @@
+###############################################################################
+#                                                                         #
+# THIS TEST GENERATES NUCLEI OF F-24 AT THE CENTRE OF THE TARGET 
+# WHICH IS THE ORIGIN. 
+#  
+################################################################################
+
+/SuN/phys/SelectPhysics LowEnergy_EM_Livermore
+
+/run/initialize
+/run/verbose 0
+/event/verbose 0
+/tracking/verbose 0
+/grdm/verbose 0
+#/grdm/noVolumes
+#/grdm/selectVolume Detector
+/grdm/allVolumes
+#
+/gps/position 0.0 0.0 0.0 mm
+#/gps/particle gamma
+/gps/energy 0 keV
+/gps/particle ion 
+/gps/ion 9 18 0 0
+#
+# uniform square plane
+#/gps/pos/type Plane
+#/gps/pos/shape Square
+#/gps/pos/centre 0. 0. 0.3 mm
+#/gps/pos/halfx 2.5 mm
+#/gps/pos/halfy 2.5 mm
+
+/grdm/applyICM true
+#
+
+
+# No daughter decays in analogue MC mode
+##/grdm/analogueMC 1
+##/grdm/nucleusLimits 51 51 22 22
+
+
+/run/beamOn 100000
+
+# No daughter decays in VR MC mode
+#/grdm/analogueMC 0
+#/grdm/BRbias 0
+##/run/beamOn 1000

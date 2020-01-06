@@ -1,0 +1,76 @@
+# Sets some default verbose
+/run/initialize
+/run/verbose 0
+/tracking/verbose 0
+/event/verbose 0
+
+
+# create empty scene
+/vis/scene/create
+
+/vis/open OGLIX
+
+/control/verbose 2
+
+# draw scene
+
+/run/initialize
+/vis/viewer/set/viewpointThetaPhi 90 0 deg
+/vis/viewer/panTo 0.005 0.0
+/vis/viewer/zoom 10.0
+
+/vis/viewer/set/viewpointThetaPhi 70 0 deg
+
+/vis/viewer/set/viewpointThetaPhi 0 45 deg
+/control/shell sleep 1
+
+/vis/viewer/set/viewpointThetaPhi 10 45 deg
+/control/shell sleep 1
+/vis/viewer/set/viewpointThetaPhi 20 45 deg
+/control/shell sleep 1
+/vis/viewer/set/viewpointThetaPhi 30 45 deg
+/control/shell sleep 1
+/vis/viewer/set/viewpointThetaPhi 40 45 deg
+/control/shell sleep 1
+/vis/viewer/set/viewpointThetaPhi 50 45 deg
+/control/shell sleep 1
+/vis/viewer/set/viewpointThetaPhi 60 45 deg
+/control/shell sleep 1
+/vis/viewer/set/viewpointThetaPhi 70 45 deg
+/control/shell sleep 1
+/vis/viewer/set/viewpointThetaPhi 80 45 deg
+/control/shell sleep 1
+/vis/viewer/set/viewpointThetaPhi 90 45 deg
+/control/shell sleep 1
+/vis/viewer/set/viewpointThetaPhi 100 45 deg
+/control/shell sleep 1
+/vis/viewer/set/viewpointThetaPhi 110 45 deg
+/control/shell sleep 1
+/vis/viewer/set/viewpointThetaPhi 120 45 deg
+/control/shell sleep 1
+/vis/viewer/set/viewpointThetaPhi 130 45 deg
+/control/shell sleep 1
+/vis/viewer/set/viewpointThetaPhi 140 45 deg
+/control/shell sleep 1
+/vis/viewer/set/viewpointThetaPhi 150 45 deg
+/control/shell sleep 1
+/vis/viewer/set/viewpointThetaPhi 160 45 deg
+/control/shell sleep 1
+/vis/viewer/set/viewpointThetaPhi 170 45 deg
+/control/shell sleep 1
+/vis/viewer/set/viewpointThetaPhi 180 45 deg
+/control/shell sleep 1
+
+
+
+/vis/viewer/set/viewpointThetaPhi 90 0 deg
+/vis/viewer/flush
+
+
+/tracking/storeTrajectory 1
+/vis/scene/add/trajectories
+
+# (if you prefer refreshing each event, comment out next line)
+/vis/scene/endOfEventAction accumulate 
+
+exit
