@@ -1,1 +1,0 @@
-# GEANT4_SuN_DSSD
